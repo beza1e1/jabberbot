@@ -347,7 +347,7 @@ class JabberBot(object):
                self.__status = ""
                self.__show = self.OFFLINE
             if not self.__acceptownmsgs:
-               # Ignore our own presence messages
+               self.log.debug('Ignore own presence message')
                return
 
         if type_ is None:
@@ -371,7 +371,7 @@ class JabberBot(object):
             # User not on our roster
             subscription = None
         except AttributeError, e:
-            # Recieved presence update before roster built
+            self.log.debug('Recieved presence update before roster was built')
             return
 
         if type_ == 'error':
@@ -428,12 +428,14 @@ class JabberBot(object):
             self.log.debug("unhandled message type: %s" % type)
             return
 
-        # Ignore messages from before we joined
-        if xmpp.NS_DELAY in props: return
+        if xmpp.NS_DELAY in props:
+            self.log.debug('Ignore messages from before we joined')
+            return
 
-        # Ignore messages from myself
-        if self.jid.bareMatch(jid): return
-        
+        if self.jid.bareMatch(jid):
+            self.log.debug('Ignore messages from myself')
+            return
+
         self.log.debug("*** props = %s" % props)
         self.log.debug("*** jid = %s" % jid)
         self.log.debug("*** username = %s" % username)
@@ -441,7 +443,9 @@ class JabberBot(object):
         self.log.debug("*** text = %s" % text)
 
         # If a message format is not supported (eg. encrypted), txt will be None
-        if not text: return
+        if not text:
+            self.log.debug('Ignore empty messages')
+            return
 
         # Ignore messages from users not seen by this bot
         if jid not in self.__seen:
