@@ -111,6 +111,7 @@ class JabberBot(object):
         self.__lastping = time.time()
         self.__privatedomain = privatedomain
         self.__acceptownmsgs = acceptownmsgs
+        self.__ignore_jids = list()
 
         self.custom_message_handler = None
 
@@ -189,6 +190,7 @@ class JabberBot(object):
         if username is None:
             username = self.__username.split('@')[0]
         my_room_JID = '/'.join((room, username))
+        self.__ignore_jids.append(my_room_JID)
         pres = xmpp.Presence(to=my_room_JID)
         if password is not None:
 	    pres.setTag('x',namespace=NS_MUC).setTagData('password',password)
@@ -435,6 +437,10 @@ class JabberBot(object):
 
         if self.jid.bareMatch(jid):
             self.log.debug('Ignore messages from myself')
+            return
+
+        if jid in self.__ignore_jids:
+            self.log.debug('Ignore message, because sender JID on ignore list')
             return
 
         self.log.debug("*** props = %s" % props)
