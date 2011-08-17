@@ -56,8 +56,9 @@ __license__ = 'GNU General Public License version 3 or later'
 def botcmd(*args, **kwargs):
     """Decorator for bot command functions"""
 
-    def decorate(func, hidden=False, name=None):
+    def decorate(func, hidden=False, name=None, groupchat=True):
         setattr(func, '_jabberbot_command', True)
+        setattr(func, '_jabberbot_groupchat', groupchat)
         setattr(func, '_jabberbot_hidden', hidden)
         setattr(func, '_jabberbot_command_name', name or func.__name__)
         return func
@@ -479,7 +480,9 @@ class JabberBot(object):
 
         if reply is None and self.commands.has_key(cmd):
             try:
-                reply = self.commands[cmd](mess, args)
+                cmd = self.commands[cmd]
+                if cmd._jabberbot_groupchat or type != 'groupchat':
+                    reply = cmd(mess, args)
             except Exception, e:
                 self.log.exception('An error happened while processing a message ("%s") from %s: %s"' % (text, jid, traceback.format_exc(e)))
                 reply = self.MSG_ERROR_OCCURRED
